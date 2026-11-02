@@ -53,6 +53,7 @@ while running:
         player.handle_event(event)
 
     screen.fill((240, 240, 240))
+    print("Hi")
 
     player.draw()
 
