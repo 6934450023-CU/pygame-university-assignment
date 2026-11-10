@@ -54,9 +54,11 @@ obj1 = green_poison(1,random.randint(0,2))
 class Player:
     def __init__(self):
         self.lane = 1
-        self.lane_x = [200, 400, 600]
-        self.y = 700
+        self.lane_x = [0, 200, 400]
+        self.y = 400
         self.color = (70, 150, 255)
+        self.sizex = 400
+        self.sizey = 400
 
     def move_left(self):
         if self.lane > 0:
@@ -73,21 +75,22 @@ class Player:
             elif event.key == pygame.K_d:
                 self.move_right()
 
-    def draw(self):
+    def draw(self,ct):
         x = self.lane_x[self.lane]
-
-        pygame.draw.circle(
-            screen,
-            self.color,
-            (x, self.y),
-            50
-        )
+        pygame.display.set_caption("Goo Mai Ru")
+        if ct == 1 :
+            image = pygame.image.load('rr1.png')
+        elif ct == 2 :
+            image = pygame.image.load('rr2.png')
+        image = pygame.transform.scale(image,(self.sizex,self.sizey))
+        screen.blit(image,(x,self.y))
 
 
 player = Player()
 
 running = True
-
+timer = 0
+coun = 1
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -96,13 +99,21 @@ while running:
         player.handle_event(event)
 
     screen.fill((240, 240, 240))
-
-    player.draw()
+    
+    player.draw(coun)
     #Don't forget to remove
     if not obj1.y >= 570 :
         obj1.draw()
         obj1.move()
     pygame.display.flip()
     clock.tick(60)
+    if timer <= 8:
+        timer +=1
+    else :
+        timer = 0
+        if coun == 1 :
+            coun = 2
+        else :
+            coun = 1
 
 pygame.quit()
