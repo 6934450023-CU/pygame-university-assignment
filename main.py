@@ -4,13 +4,18 @@ import random
 pygame.init()
 
 screen = pygame.display.set_mode((800, 800))
-pygame.display.set_caption("Goo Mai Ru")
+pygame.display.set_caption("Paint Color To This World")
 clock = pygame.time.Clock()
 
 # Load images once
 poison_image = pygame.image.load("dmg1.png").convert_alpha()
 player_image1 = pygame.image.load("rr1.png").convert_alpha()
 player_image2 = pygame.image.load("rr2.png").convert_alpha()
+
+# main menu
+font_title = pygame.font.SysFont(None, 80)
+font_button = pygame.font.SysFont(None, 40)
+game_state = 'MENU'
 
 
 # Parent class from teammate
@@ -161,64 +166,99 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        elif event.type == pygame.KEYDOWN:
+        if event.type == pygame.KEYDOWN:
+            # hitbox toggle
             if event.key == pygame.K_h:
                 show_hitbox = not show_hitbox
-
-            if game_over:
-                if event.key == pygame.K_r:
+            # start game from menu
+            if game_state == 'MENU':
+                if event.key == pygame.K_e:
                     restart_game()
-            else:
-                player.handle_event(event)
+                    game_state = 'PLAY'
+
+            elif game_state == 'PLAY':
+                if game_over:
+                    # restart game or go to main menu when game over
+                    if event.key == pygame.K_r:
+                        restart_game()
+                    elif event.key == pygame.K_q:
+                        game_state = 'MENU'
+                        game_over = False
+                else:
+                    # A and D keys for player movement
+                    player.handle_event(event)
 
     screen.fill((240, 240, 240))
 
-    if not game_over:
-        obj1.move()
+    if game_state == 'MENU':
+        # Draw the main menu
+        title_line1 = font_title.render("Paint Color", True, (50, 50, 50))
+        title_line2 = font_title.render("To This World", True, (50, 50, 50))
+        screen.blit(title_line1, title_line1.get_rect(center=(400, 285)))
+        screen.blit(title_line2, title_line2.get_rect(center=(400, 365)))
 
-        if check_collision(obj1, player):
-            game_over = True
+        # Draw the start button
+        button_rect = pygame.Rect(291, 450, 220, 70)
+        pygame.draw.rect(screen, (70, 150, 255), button_rect, border_radius=10)
 
-        elif obj1.y >= 570:
-            obj1.lane = random.randint(0, 2)
-            obj1.reset()
+        btn_text = font_button.render("Press E to Start", True, (255, 255, 255))
+        screen.blit(btn_text, (299, 470))
 
-        player.draw(coun)
-        obj1.draw()
+    elif game_state == 'PLAY':
+        if not game_over:
+            obj1.move()
 
-        if show_hitbox:
-            pygame.draw.rect(
-                screen, (255, 0, 0),
-                player.get_rect(), 2
+            if check_collision(obj1, player):
+                game_over = True
+
+            elif obj1.y >= 570:
+                obj1.lane = random.randint(0, 2)
+                obj1.reset()
+
+            player.draw(coun)
+            obj1.draw()
+
+            if show_hitbox:
+                pygame.draw.rect(
+                    screen, (255, 0, 0),
+                    player.get_rect(), 2
+                )
+                pygame.draw.rect(
+                    screen, (255, 0, 0),
+                    obj1.get_rect(), 2
+                )
+
+            timer += 1
+
+            if timer > 8:
+                timer = 0
+                if coun == 1:
+                    coun = 2
+                else:
+                    coun = 1
+
+        else:
+            text = font.render(
+                "GAME OVER", True, (255, 70, 70)
             )
-            pygame.draw.rect(
-                screen, (255, 0, 0),
-                obj1.get_rect(), 2
+            text_rect = text.get_rect(center=(400, 330))
+            screen.blit(text, text_rect)
+
+            restart_text = small_font.render(
+                "Press R to Restart", True, (80, 80, 80)
             )
+            restart_rect = restart_text.get_rect(
+                center=(400, 410)
+            )
+            screen.blit(restart_text, restart_rect)
 
-        timer += 1
-
-        if timer > 8:
-            timer = 0
-            if coun == 1:
-                coun = 2
-            else:
-                coun = 1
-
-    else:
-        text = font.render(
-            "GAME OVER", True, (255, 70, 70)
-        )
-        text_rect = text.get_rect(center=(400, 330))
-        screen.blit(text, text_rect)
-
-        restart_text = small_font.render(
-            "Press R to Restart", True, (80, 80, 80)
-        )
-        restart_rect = restart_text.get_rect(
-            center=(400, 410)
-        )
-        screen.blit(restart_text, restart_rect)
+            menu_text = small_font.render(
+                "Press Q to Main Menu", True, (80, 80, 80)
+            )
+            menu_rect = menu_text.get_rect(
+                center=(400, 460)
+            )
+            screen.blit(menu_text, menu_rect)
 
     pygame.display.flip()
     clock.tick(60)
