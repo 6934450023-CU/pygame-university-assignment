@@ -14,7 +14,7 @@ class obj:
         self.sizex = 80
         self.sizey = 80
         self.lane_x = [335, 355, 375]
-        self.y = 25
+        self.y = -50
         self.color = (70, 150, 255)
         self.speed = speed
         self.x2 = self.lane_x[self.lane]
@@ -42,14 +42,31 @@ class green_poison(obj):
         super().__init__(speed,obj_start_point)
     def draw(self):
         x = self.x2
-        pygame.display.set_caption("Goo Mai Ru")
         image = pygame.image.load('dmg1.png')
         image = pygame.transform.scale(image,(self.sizex,self.sizey))
         screen.blit(image,(x,self.y))
 
+class paintb(obj):
+    def __init__(self,speed,obj_start_point):
+        super().__init__(speed,obj_start_point)
+    def draw(self):
+        x = self.x2
+        image = pygame.image.load('sc1.png')
+        image = pygame.transform.scale(image,(self.sizex,self.sizey))
+        screen.blit(image,(x,self.y))
 
-#Obj 1(ตัวเทส)
-obj1 = green_poison(1,random.randint(0,2))
+
+
+class bg :
+    def __init__(self):
+        self.x = 800
+        self.y = 800
+    def draw(self) :
+        image = pygame.image.load('rd1.png')
+        image = pygame.transform.scale(image,(self.x,self.y))
+        screen.blit(image,(0,0))
+
+blg = bg()
 
 class Player:
     def __init__(self):
@@ -77,7 +94,6 @@ class Player:
 
     def draw(self,ct):
         x = self.lane_x[self.lane]
-        pygame.display.set_caption("Goo Mai Ru")
         if ct == 1 :
             image = pygame.image.load('rr1.png')
         elif ct == 2 :
@@ -85,10 +101,67 @@ class Player:
         image = pygame.transform.scale(image,(self.sizex,self.sizey))
         screen.blit(image,(x,self.y))
 
+class pattern :
+    def __init__(self,gspeed):
+        self.dmo = {} #damage object dict
+        self.sco = {}
+        self.sp = gspeed
+        self.dpt = [] #damage object pattern
+        self.ds = [] #damage objet show out time
+        self.spt = []
+        self.ss = []
+        self.timer = 0
+        self.lng = 0
+    def pat1(self) :
+        self.dpt = [1,0,2,0,2,0]
+        self.ds = [1,2,4,5,6,7]
+        self.lng = len(self.dpt) if len(self.dpt) >= len(self.spt) else len(self.spt)
+        for i in range(len(self.dpt)):
+            self.dmo[i] = green_poison(self.sp,self.dpt[i])
+        self.spt = [0,2,0,2,0,2]
+        self.ss = [0.3,1,4,5,6,7]
+        for i in range(len(self.spt)):
+            self.sco[i] = paintb(self.sp,self.spt[i])
+    def pat2(self) :
+        self.dpt = [1,1,1,1,1]
+        self.ds = [0,3,6,9,12]
+        self.lng = len(self.dpt) if len(self.dpt) >= len(self.spt) else len(self.spt)
+        for i in range(len(self.dpt)):
+            self.dmo[i] = green_poison(self.sp,self.dpt[i])
+        self.spt = [1,1,1,1]
+        self.ss = [1.5,4.5,7.5,10.5]
+        for i in range(len(self.spt)):
+            self.sco[i] = paintb(self.sp,self.spt[i])
+    def draw(self):
+        for tm in range(self.lng):
+            if tm in self.dmo.keys():
+                if not self.dmo[tm].y >= 570 and self.timer*self.sp >= self.ds[tm]:
+                        self.dmo[tm].draw()
+                        self.dmo[tm].move()
+                elif self.dmo[tm].y >= 570:
+                    del self.dmo[tm]
+            
+            if tm in self.sco.keys():
+                if not self.sco[tm].y >= 570 and self.timer*self.sp >= self.ss[tm]:
+                        self.sco[tm].draw()
+                        self.sco[tm].move()
+                elif self.sco[tm].y >= 570:
+                    del self.sco[tm]
+
+pattern_check = 0
 
 player = Player()
 
+pytime = pygame.event.custom_type()
+pygame.time.set_timer(pytime,10)
+pttick = 0
+realtimer = 120
+btime = realtimer
+
+ti_font = pygame.font.Font(None, 40)
+
 running = True
+Ti = 0
 timer = 0
 coun = 1
 while running:
@@ -98,14 +171,37 @@ while running:
 
         player.handle_event(event)
 
+        if event.type == pytime:
+            realtimer -= 0.01
+
     screen.fill((240, 240, 240))
-    
+
+    blg.draw()
+
+    ti_te = ti_font.render(
+        "Time left = "+str(int(realtimer//1)), True, (0, 0, 0)
+    )
+    ti_te_rect = ti_te.get_rect(center=(50, 50))
+    screen.blit(ti_te, (50,50))
+
+    if pattern_check == 0:
+        pt = pattern(1.2)
+        rane = random.randint(1,2)
+        if rane == 1 :
+            pt.pat1()
+        elif rane == 2 :
+            pt.pat2()
+        pattern_check = 1
+    elif pattern_check == 1 :
+        pt.draw()
+        if btime-realtimer >= 0.06 :
+            pt.timer += 0.1
+            btime = realtimer
+        if pt.dmo[pt.lng-1].y >= 570:
+            pattern_check = 0
+
     player.draw(coun)
-    #Don't forget to remove
-    if not obj1.y >= 570 :
-        obj1.draw()
-        obj1.move()
-    pygame.display.flip()
+    
     clock.tick(60)
     if timer <= 8:
         timer +=1
@@ -115,5 +211,6 @@ while running:
             coun = 2
         else :
             coun = 1
+    pygame.display.flip()
 
 pygame.quit()
