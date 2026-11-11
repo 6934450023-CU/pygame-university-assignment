@@ -3,42 +3,75 @@ import random
 
 pygame.init()
 
-screen = pygame.display.set_mode((400, 600))
+screen = pygame.display.set_mode((800, 800))
 pygame.display.set_caption("Goo Mai Ru")
-
 clock = pygame.time.Clock()
-class FallingObject:
-    def __init__(self,speed,obj_start_point):
+
+# Load images once
+poison_image = pygame.image.load("dmg1.png").convert_alpha()
+player_image1 = pygame.image.load("rr1.png").convert_alpha()
+player_image2 = pygame.image.load("rr2.png").convert_alpha()
+
+
+# Parent class from teammate
+class obj:
+    def __init__(self, speed, obj_start_point):
         self.lane = obj_start_point
-        self.lane_x = [100, 200, 300]
-        self.y = -10
-        self.color = (70, 150, 255)
+        self.lane_x = [335, 355, 375]
         self.speed = speed
+        self.reset()
+
+    def reset(self):
+        self.sizex = 80
+        self.sizey = 80
+        self.y = 25
+        self.x2 = self.lane_x[self.lane]
+
     def draw(self):
         pass
+
     def move(self):
-        self.y = self.y + (5 * self.speed)
+        self.y += 5 * self.speed
+        self.sizex += 1 * self.speed
+        self.sizey += 1 * self.speed
 
-        if self.y > 600:
-            self.y = -10
-            self.lane = random.randint(0, 2)
+        if self.lane == 1:
+            self.x2 -= 0.4 * self.speed
+        elif self.lane == 0:
+            self.x2 -= 2.1 * self.speed
+        elif self.lane == 2:
+            self.x2 += 1.3 * self.speed
 
-class FallingObject_Rect(FallingObject):
-    def __init__(self,speed,obj_start_point,sizex,sizey):
-        super().__init__(speed,obj_start_point)
-        self.sizex = sizex
-        self.sizey = sizey
+
+# Child class from teammate
+class green_poison(obj):
+    def __init__(self, speed, obj_start_point):
+        super().__init__(speed, obj_start_point)
+
     def draw(self):
-        x = self.lane_x[self.lane]
-        pygame.draw.rect(screen,self.color,(x - self.sizex / 2,self.y,self.sizex,self.sizey))
+        image = pygame.transform.scale(
+            poison_image,
+            (int(self.sizex), int(self.sizey))
+        )
+        screen.blit(image, (int(self.x2), int(self.y)))
 
-obj1 = FallingObject_Rect(2,1,30,25)
+    def get_rect(self):
+        return pygame.Rect(
+            int(self.x2 + self.sizex * 0.24),
+            int(self.y + self.sizey * 0.60),
+            int(self.sizex * 0.54),
+            int(self.sizey * 0.34)
+        )
+
+
+# Player class
 class Player:
     def __init__(self):
         self.lane = 1
-        self.lane_x = [100, 200, 300]
-        self.y = 500
-        self.color = (70, 150, 255)
+        self.lane_x = [0, 200, 400]
+        self.y = 400
+        self.sizex = 400
+        self.sizey = 400
 
     def move_left(self):
         if self.lane > 0:
@@ -55,73 +88,136 @@ class Player:
             elif event.key == pygame.K_d:
                 self.move_right()
 
-    def draw(self):
+    def draw(self, ct):
         x = self.lane_x[self.lane]
 
-        pygame.draw.circle(
-            screen,
-            self.color,
-            (x, self.y),
-            25
+        if ct == 1:
+            image = player_image1
+        else:
+            image = player_image2
+
+        image = pygame.transform.scale(
+            image,
+            (self.sizex, self.sizey)
+        )
+        screen.blit(image, (x, self.y))
+
+    def get_rect(self):
+        x = self.lane_x[self.lane]
+
+        return pygame.Rect(
+            x + 135,
+            self.y + 50,
+            130,
+            300
         )
 
+
+# Create objects
 player = Player()
+obj1 = green_poison(1, random.randint(0, 2))
 
 running = True
 game_over = False
+show_hitbox = False
 
+timer = 0
+coun = 1
+
+font = pygame.font.Font(None, 80)
+small_font = pygame.font.Font(None, 36)
+
+
+# Collision function
 def check_collision(obj1, player):
-    if obj1.lane == player.lane:
-        if obj1.y + obj1.sizey >= player.y - 25 and obj1.y <= player.y + 25:
-            print("Collision detected")
-            return True
+    if obj1.lane != player.lane:
+        return False
 
-    return False
+    if obj1.y < 480:
+        return False
 
-font = pygame.font.Font(None, 50)
+    return obj1.get_rect().colliderect(
+        player.get_rect()
+    )
 
+
+# Restart function
 def restart_game():
-    global game_over
+    global game_over, timer, coun
 
     game_over = False
+    timer = 0
+    coun = 1
 
     player.lane = 1
 
-    obj1.y = -10
     obj1.lane = random.randint(0, 2)
+    obj1.reset()
 
+
+# Main game loop
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-        if not game_over:
-            player.handle_event(event)
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_h:
+                show_hitbox = not show_hitbox
 
-        else:
-            if event.type == pygame.KEYDOWN:
+            if game_over:
                 if event.key == pygame.K_r:
                     restart_game()
+            else:
+                player.handle_event(event)
 
     screen.fill((240, 240, 240))
 
     if not game_over:
-        player.draw()
-        obj1.draw()
         obj1.move()
 
         if check_collision(obj1, player):
             game_over = True
 
+        elif obj1.y >= 570:
+            obj1.lane = random.randint(0, 2)
+            obj1.reset()
+
+        player.draw(coun)
+        obj1.draw()
+
+        if show_hitbox:
+            pygame.draw.rect(
+                screen, (255, 0, 0),
+                player.get_rect(), 2
+            )
+            pygame.draw.rect(
+                screen, (255, 0, 0),
+                obj1.get_rect(), 2
+            )
+
+        timer += 1
+
+        if timer > 8:
+            timer = 0
+            if coun == 1:
+                coun = 2
+            else:
+                coun = 1
+
     else:
-        text = font.render("GAME OVER", True, (255, 70, 70))
-        text_rect = text.get_rect(center=(200, 270))
+        text = font.render(
+            "GAME OVER", True, (255, 70, 70)
+        )
+        text_rect = text.get_rect(center=(400, 330))
         screen.blit(text, text_rect)
 
-        restart_text = pygame.font.Font(None, 30).render(
+        restart_text = small_font.render(
             "Press R to Restart", True, (80, 80, 80)
         )
-        restart_rect = restart_text.get_rect(center=(200, 330))
+        restart_rect = restart_text.get_rect(
+            center=(400, 410)
+        )
         screen.blit(restart_text, restart_rect)
 
     pygame.display.flip()
