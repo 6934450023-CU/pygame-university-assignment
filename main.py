@@ -10,8 +10,8 @@ clock = pygame.time.Clock()
 
 # Load images once
 poison_image = pygame.image.load("dmg1.png").convert_alpha()
-player_image1 = pygame.image.load("rr1.png").convert_alpha()
-player_image2 = pygame.image.load("rr2.png").convert_alpha()
+player_image1 = pygame.image.load("run/rr1.png").convert_alpha()
+player_image2 = pygame.image.load("run/rr2.png").convert_alpha()
 
 # main menu
 font_title = pygame.font.SysFont(None, 80)
@@ -127,9 +127,9 @@ class Player:
     def draw(self,ct):
         x = self.lane_x[self.lane]
         if ct == 1 :
-            image = pygame.image.load('rr1.png')
+            image = pygame.image.load('run/rr1.png')
         elif ct == 2 :
-            image = pygame.image.load('rr2.png')
+            image = pygame.image.load('run/rr2.png')
         image = pygame.transform.scale(image,(self.sizex,self.sizey))
         screen.blit(image,(x,self.y))
 
@@ -214,12 +214,12 @@ def check_collision(obj1, player):
 
 # Restart function
 def restart_game():
-    global game_over, timer, coun , realtimer
+    global game_over, timer, coun
 
     game_over = False
     timer = 0
     coun = 1
-    global pattern_check,btime,tct
+    global pattern_check,btime,tct,realtimer
     realtimer = 60
     btime = realtimer
     tct = realtimer
@@ -231,8 +231,7 @@ def restart_game():
 #timer
 pytime = pygame.event.custom_type()
 pygame.time.set_timer(pytime,10)
-pttick = 0
-realtimer = 20
+realtimer = 60
 btime = realtimer
 
 #timer font
@@ -291,7 +290,7 @@ while running:
     if game_state == 'MENU':
         #Total color
         fi = open("TotalPaint.txt","r")
-        ti_te = ti_font.render("Your Total color = "+fi.read(), True, (0, 0, 0))
+        ti_te = ti_font.render("Total color point = "+fi.read(), True, (0, 0, 0))
         screen.blit(ti_te, (50,100))
         fi.close()
 
@@ -334,7 +333,7 @@ while running:
 
             #object pattern
             if pattern_check == 0:
-                pt = pattern(1.2)
+                pt = pattern(2.4)
                 rane = random.randint(1,2)
                 if rane == 1 :
                     pt.pat1()
@@ -343,7 +342,7 @@ while running:
                 pattern_check = 1
             elif pattern_check == 1 :
                 pt.draw()
-                if btime-realtimer >= 0.06 :
+                if btime-realtimer >= 0.08 :
                     pt.timer += 0.1
                     btime = realtimer
                 if pt.dmo[pt.lng-1].y >= 570:
@@ -367,7 +366,7 @@ while running:
 
             timer += 1
 
-            if timer > 8:
+            if timer > 3:
                 timer = 0
                 if coun == 1:
                     coun = 2
@@ -395,7 +394,7 @@ while running:
 
         else:
             score = 100 
-            if escore == 0 :
+            if escore <= 0 :
                 text = font.render(
                     "GAME OVER", True, (255, 70, 70)
                 )
@@ -425,19 +424,7 @@ while running:
             )
             screen.blit(menu_text, menu_rect)
     
-
-
-
-    
-    clock.tick(60)
-    if timer <= 8:
-        timer +=1
-    else :
-        timer = 0
-        if coun == 1 :
-            coun = 2
-        else :
-            coun = 1
+    clock.tick(30)
     pygame.display.flip()
 
 pygame.quit()
