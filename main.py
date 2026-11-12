@@ -214,12 +214,15 @@ def check_collision(obj1, player):
 
 # Restart function
 def restart_game():
-    global game_over, timer, coun
+    global game_over, timer, coun , realtimer
 
     game_over = False
     timer = 0
     coun = 1
-    global pattern_check
+    global pattern_check,btime,tct
+    realtimer = 60
+    btime = realtimer
+    tct = realtimer
     pattern_check = 0
 
     player.lane = 1
@@ -229,7 +232,7 @@ def restart_game():
 pytime = pygame.event.custom_type()
 pygame.time.set_timer(pytime,10)
 pttick = 0
-realtimer = 60
+realtimer = 20
 btime = realtimer
 
 #timer font
@@ -247,6 +250,8 @@ get_score = 0
 
 tc = 0
 tct = realtimer
+escore = 0
+get_score_o = 0
 
 # Main game loop
 while running:
@@ -307,6 +312,7 @@ while running:
         if not game_over:
             blg.draw()
             if score <= 0 or realtimer <= 0:
+                get_score_o = get_score
                 fi = open("TotalPaint.txt","r")
                 get_score += int(fi.read().strip())
                 fi.close()
@@ -314,6 +320,7 @@ while running:
                 fi.write(str(get_score))
                 fi.close()
                 get_score = 0
+                escore = score
                 game_over = True
 
             #Timer
@@ -387,12 +394,20 @@ while running:
                 )
 
         else:
-            score = 100
-            text = font.render(
-                "GAME OVER", True, (255, 70, 70)
-            )
-            text_rect = text.get_rect(center=(400, 330))
-            screen.blit(text, text_rect)
+            score = 100 
+            if escore == 0 :
+                text = font.render(
+                    "GAME OVER", True, (255, 70, 70)
+                )
+                text_rect = text.get_rect(center=(400, 330))
+                screen.blit(text, text_rect)
+            else :
+                text = font.render(
+                    "Your color = " + str(escore), True, (255, 70, 70)
+                )
+                text_rect = text.get_rect(center=(400, 330))
+                screen.blit(text, text_rect)
+
 
             restart_text = small_font.render(
                 "Press R to Restart", True, (80, 80, 80)
