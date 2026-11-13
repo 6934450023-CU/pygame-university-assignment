@@ -277,12 +277,7 @@ while running:
                     game_state = 'PLAY'
 
             elif game_state == 'PLAY':
-                if game_over:
-                    # restart game or go to main menu when game over
-                    if event.key == pygame.K_q:
-                        game_state = 'MENU'
-                        game_over = False
-                else:
+                if not game_over:
                     # A and D keys for player movement
                     player.handle_event(event)
 
