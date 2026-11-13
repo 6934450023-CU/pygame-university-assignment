@@ -13,6 +13,10 @@ poison_image = pygame.image.load("dmg1.png").convert_alpha()
 player_image1 = pygame.image.load("run/rr1.png").convert_alpha()
 player_image2 = pygame.image.load("run/rr2.png").convert_alpha()
 
+# Load Sounds Effect
+click_sound = pygame.mixer.Sound("sounds/click.wav")
+click_sound.set_volume(0.5)
+
 # main menu
 font_title = pygame.font.SysFont(None, 80)
 font_button = pygame.font.SysFont(None, 40)
@@ -215,15 +219,17 @@ def check_collision(obj1, player):
 # Restart function
 def restart_game():
     global game_over, timer, coun
+    global pattern_check, btime, tct, realtimer, tc
 
     game_over = False
     timer = 0
     coun = 1
-    global pattern_check,btime,tct,realtimer
+
     realtimer = 60
     btime = realtimer
     tct = realtimer
     pattern_check = 0
+    tc = 0
 
     player.lane = 1
 
@@ -239,6 +245,7 @@ ti_font = pygame.font.Font(None, 40)
 
 font = pygame.font.Font(None, 80)
 small_font = pygame.font.Font(None, 36)
+restart_button = pygame.Rect(300, 380, 200, 60)
 running = True
 game_over = False
 show_hitbox = False
@@ -271,14 +278,18 @@ while running:
             elif game_state == 'PLAY':
                 if game_over:
                     # restart game or go to main menu when game over
-                    if event.key == pygame.K_r:
-                        restart_game()
-                    elif event.key == pygame.K_q:
+                    if event.key == pygame.K_q:
                         game_state = 'MENU'
                         game_over = False
                 else:
                     # A and D keys for player movement
                     player.handle_event(event)
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1 and game_state == 'PLAY' and game_over:
+                if restart_button.collidepoint(event.pos):
+                    click_sound.play()
+                    restart_game()
 
         #Timer event
         if event.type == pytime:
@@ -407,14 +418,46 @@ while running:
                 text_rect = text.get_rect(center=(400, 330))
                 screen.blit(text, text_rect)
 
+            mouse_pos = pygame.mouse.get_pos()
+            is_hovered = restart_button.collidepoint(mouse_pos)
 
+            mouse_pressed = pygame.mouse.get_pressed()[0]
+            is_pressed = is_hovered and mouse_pressed
+
+            if is_pressed:
+                button_color = (45, 125, 80)
+                offset_y = 4
+            elif is_hovered:
+                button_color = (105, 205, 145)
+                offset_y = 0
+            else:
+                button_color = (80, 170, 120)
+                offset_y = 0
+
+            # Shadow
+            shadow_rect = restart_button.move(0, 5)
+            pygame.draw.rect(
+                screen, (35, 90, 60),
+                shadow_rect, border_radius=12
+            )
+
+            # Button
+            draw_rect = restart_button.move(0, offset_y)
+            pygame.draw.rect(
+                screen, button_color,
+                draw_rect, border_radius=12
+            )
+
+            # Text
             restart_text = small_font.render(
-                "Press R to Restart", True, (80, 80, 80)
+                "RESTART", True, (255, 255, 255)
             )
-            restart_rect = restart_text.get_rect(
-                center=(400, 410)
+
+            restart_text_rect = restart_text.get_rect(
+                center=draw_rect.center
             )
-            screen.blit(restart_text, restart_rect)
+
+            screen.blit(restart_text, restart_text_rect)
 
             menu_text = small_font.render(
                 "Press Q to Main Menu", True, (80, 80, 80)
