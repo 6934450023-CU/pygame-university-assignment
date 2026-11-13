@@ -246,6 +246,7 @@ ti_font = pygame.font.Font(None, 40)
 font = pygame.font.Font(None, 80)
 small_font = pygame.font.Font(None, 36)
 restart_button = pygame.Rect(300, 380, 200, 60)
+menu_button = pygame.Rect(300, 460, 200, 60)
 running = True
 game_over = False
 show_hitbox = False
@@ -290,6 +291,11 @@ while running:
                 if restart_button.collidepoint(event.pos):
                     click_sound.play()
                     restart_game()
+
+                elif menu_button.collidepoint(event.pos):
+                    click_sound.play()
+                    game_state = 'MENU'
+                    game_over = False
 
         #Timer event
         if event.type == pytime:
@@ -459,13 +465,32 @@ while running:
 
             screen.blit(restart_text, restart_text_rect)
 
+            # Main Menu button
+            menu_hovered = menu_button.collidepoint(
+                pygame.mouse.get_pos()
+            )
+
+            if menu_hovered:
+                menu_color = (110, 155, 210)
+            else:
+                menu_color = (80, 120, 170)
+
+            pygame.draw.rect(
+                screen,
+                menu_color,
+                menu_button,
+                border_radius=12
+            )
+
             menu_text = small_font.render(
-                "Press Q to Main Menu", True, (80, 80, 80)
+                "MAIN MENU", True, (255, 255, 255)
             )
-            menu_rect = menu_text.get_rect(
-                center=(400, 460)
+
+            menu_text_rect = menu_text.get_rect(
+                center=menu_button.center
             )
-            screen.blit(menu_text, menu_rect)
+
+            screen.blit(menu_text, menu_text_rect)
     
     clock.tick(30)
     pygame.display.flip()
