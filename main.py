@@ -10,8 +10,10 @@ clock = pygame.time.Clock()
 
 # Load images once
 poison_image = pygame.image.load("dmg1.png").convert_alpha()
-player_image1 = pygame.image.load("run/rr1.png").convert_alpha()
-player_image2 = pygame.image.load("run/rr2.png").convert_alpha()
+player_image1 = pygame.image.load("run/r1.png").convert_alpha()
+player_image2 = pygame.image.load("run/r2.png").convert_alpha()
+player_image1 = pygame.image.load("run/r3.png").convert_alpha()
+player_image2 = pygame.image.load("run/r4.png").convert_alpha()
 
 # Load Sounds Effect
 click_sound = pygame.mixer.Sound("sounds/click.wav")
@@ -21,6 +23,16 @@ click_sound.set_volume(0.5)
 font_title = pygame.font.SysFont(None, 80)
 font_button = pygame.font.SysFont(None, 40)
 game_state = 'MENU'
+
+#color check :
+red = 0
+gre = 0
+blu = 0
+
+#difficult control
+df = 0
+spdt = 0
+timep = 0
 
 # Parent object class
 class obj:
@@ -78,9 +90,10 @@ class green_poison(obj):
 class paintb(obj):
     def __init__(self,speed,obj_start_point):
         super().__init__(speed,obj_start_point)
+        self.im = 'sc1.png'
     def draw(self):
         x = self.x2
-        image = pygame.image.load('sc1.png')
+        image = pygame.image.load(self.im)
         image = pygame.transform.scale(image,(self.sizex,self.sizey))
         screen.blit(image,(x,self.y))
     def get_rect(self):
@@ -90,28 +103,119 @@ class paintb(obj):
             int(self.sizex * 0.54),
             int(self.sizey * 0.34)
         )
+    def point(self) :
+        pass
 
+class greenp(paintb):
+    def __init__(self,speed,obj_start_point):
+        super().__init__(speed,obj_start_point)
+        self.im = 'color/green.png'
+    def point(self) :
+        global gre
+        gre += 1
+
+
+class redp(paintb):
+    def __init__(self,speed,obj_start_point):
+        super().__init__(speed,obj_start_point)
+        self.im = 'color/red.png'
+    def point(self) :
+        global red
+        red += 1
+
+
+class bluep(paintb):
+    def __init__(self,speed,obj_start_point):
+        super().__init__(speed,obj_start_point)
+        self.im = 'color/blue.png'
+    def point(self) :
+        global blu
+        blu += 1
 
 # In game black ground
 class bg :
+    def __init__(self,bgcc):
+        self.x = 800
+        self.y = 800
+        self.bgcc = bgcc
+    def draw(self) :
+        if self.bgcc == "b" :
+            image = pygame.image.load("blue/bl.png")
+            image = pygame.transform.scale(image,(self.x,self.y))
+            screen.blit(image,(0,0))
+        elif self.bgcc == "r" :
+            image = pygame.image.load("red/rd.png")
+            image = pygame.transform.scale(image,(self.x,self.y))
+            screen.blit(image,(0,0))
+        elif self.bgcc == "g" :
+            image = pygame.image.load("green/gr.png")
+            image = pygame.transform.scale(image,(self.x,self.y))
+            screen.blit(image,(0,0))
+        else :
+            image = pygame.image.load('rd1.png')
+            image = pygame.transform.scale(image,(self.x,self.y))
+            screen.blit(image,(0,0))
+    def change(self,nbg):
+        self.bgcc = nbg
+blg = bg('no')
+
+# black ground change
+class bgc :
     def __init__(self):
         self.x = 800
         self.y = 800
-    def draw(self) :
-        image = pygame.image.load('rd1.png')
-        image = pygame.transform.scale(image,(self.x,self.y))
-        screen.blit(image,(0,0))
-blg = bg()
+    def bch(self):
+        global bcetim,red,gre,blu,stp,blg
+        if stp == 0 :
+            stp += 1
+        if red > gre and red > blu :
+            if stp < 5 :
+                image = pygame.image.load("red/r"+str(stp)+'.png')
+                image = pygame.transform.scale(image,(self.x,self.y))
+                screen.blit(image,(0,0))
+            elif stp >= 5 :
+                image = pygame.image.load("red/r4.png")
+                image = pygame.transform.scale(image,(self.x,self.y))
+                screen.blit(image,(0,0))
+                blg.change('r')
+        elif gre > red and gre> blu :
+            if stp < 5 :
+                image = pygame.image.load("green/g"+str(stp)+'.png')
+                image = pygame.transform.scale(image,(self.x,self.y))
+                screen.blit(image,(0,0))
+            elif stp >= 5 :
+                image = pygame.image.load("green/g4.png")
+                image = pygame.transform.scale(image,(self.x,self.y))
+                screen.blit(image,(0,0))
+                blg.change('g')
+        elif blu > red and blu > gre :
+            if stp < 5 :
+                image = pygame.image.load("blue/b"+str(stp)+'.png')
+                image = pygame.transform.scale(image,(self.x,self.y))
+                screen.blit(image,(0,0))
+            elif stp >= 5 :
+                image = pygame.image.load("blue/b4.png")
+                image = pygame.transform.scale(image,(self.x,self.y))
+                screen.blit(image,(0,0))
+                blg.change('b')
+        if bcetim >= 5 :
+            stp += 1
+            bcetim = 0
+        else :
+            bcetim +=1
+bcetim = 0
+stp = 0
+cbg = bgc()
 
 # Player class
 class Player:
     def __init__(self):
         self.lane = 1
-        self.lane_x = [0, 200, 400]
-        self.y = 400
+        self.lane_x = [-60, 140, 340]
+        self.y = 300
         self.color = (70, 150, 255)
-        self.sizex = 400
-        self.sizey = 400
+        self.sizex = 500
+        self.sizey = 500
 
     def move_left(self):
         if self.lane > 0:
@@ -131,9 +235,13 @@ class Player:
     def draw(self,ct):
         x = self.lane_x[self.lane]
         if ct == 1 :
-            image = pygame.image.load('run/rr1.png')
+            image = pygame.image.load('run/r4.png')
         elif ct == 2 :
-            image = pygame.image.load('run/rr2.png')
+            image = pygame.image.load('run/r3.png')
+        elif ct == 3 :
+            image = pygame.image.load('run/r2.png')
+        elif ct == 4 :
+            image = pygame.image.load('run/r1.png')
         image = pygame.transform.scale(image,(self.sizex,self.sizey))
         screen.blit(image,(x,self.y))
 
@@ -141,8 +249,8 @@ class Player:
         x = self.lane_x[self.lane]
 
         return pygame.Rect(
-            x + 135,
-            self.y + 50,
+            x + 195,
+            self.y + 110,
             130,
             300
         )
@@ -152,50 +260,121 @@ player = Player()
 # pattern class
 class pattern :
     def __init__(self,gspeed):
+        global spdt
         self.dmo = {} #damage object dict
         self.sco = {}
-        self.sp = gspeed
+        self.sp = gspeed*spdt
         self.dpt = [] #damage object pattern
         self.ds = [] #damage objet show out time
         self.spt = []
         self.ss = []
         self.timer = 0
         self.lng = 0
+        self.clr = []
     def pat1(self) :
         self.dpt = [1,0,2,0,2,0]
         self.ds = [1,2,4,5,6,7]
+        self.spt = [0,2,0,2,0,2]
+        self.ss = [0.3,1,4,5,6,7]
+        self.clr = ['b','0','g','b','r','g']
         self.lng = len(self.dpt) if len(self.dpt) >= len(self.spt) else len(self.spt)
         for i in range(len(self.dpt)):
             self.dmo[i] = green_poison(self.sp,self.dpt[i])
-        self.spt = [0,2,0,2,0,2]
-        self.ss = [0.3,1,4,5,6,7]
         for i in range(len(self.spt)):
-            self.sco[i] = paintb(self.sp,self.spt[i])
+            if self.clr[i] == '0' :
+                self.sco[i] = paintb(self.sp,self.spt[i])
+            elif self.clr[i] == 'r':
+                self.sco[i] = redp(self.sp,self.spt[i])
+            elif self.clr[i] == 'g':
+                self.sco[i] = greenp(self.sp,self.spt[i])
+            elif self.clr[i] == 'b':
+                self.sco[i] = bluep(self.sp,self.spt[i])
     def pat2(self) :
         self.dpt = [1,1,1,1,1]
         self.ds = [0,3,6,9,12]
+        self.spt = [1,1,1,1]
+        self.ss = [1.5,4.5,7.5,10.5]
+        self.clr = ['g','r','g','r']
         self.lng = len(self.dpt) if len(self.dpt) >= len(self.spt) else len(self.spt)
         for i in range(len(self.dpt)):
             self.dmo[i] = green_poison(self.sp,self.dpt[i])
-        self.spt = [1,1,1,1]
-        self.ss = [1.5,4.5,7.5,10.5]
         for i in range(len(self.spt)):
-            self.sco[i] = paintb(self.sp,self.spt[i])
+            if self.clr[i] == '0' :
+                self.sco[i] = paintb(self.sp,self.spt[i])
+            elif self.clr[i] == 'r':
+                self.sco[i] = redp(self.sp,self.spt[i])
+            elif self.clr[i] == 'g':
+                self.sco[i] = greenp(self.sp,self.spt[i])
+            elif self.clr[i] == 'b':
+                self.sco[i] = bluep(self.sp,self.spt[i])
+    def pat3(self) :
+        self.dpt = [2]
+        self.ds = [3]
+        self.spt = [1,2,1,1,2]
+        self.ss = [0,1,2,4,5]
+        self.clr = ['r','g','b','r','b']
+        self.lng = len(self.dpt) if len(self.dpt) >= len(self.spt) else len(self.spt)
+        for i in range(len(self.dpt)):
+            self.dmo[i] = green_poison(self.sp,self.dpt[i])
+        for i in range(len(self.spt)):
+            if self.clr[i] == '0' :
+                self.sco[i] = paintb(self.sp,self.spt[i])
+            elif self.clr[i] == 'r':
+                self.sco[i] = redp(self.sp,self.spt[i])
+            elif self.clr[i] == 'g':
+                self.sco[i] = greenp(self.sp,self.spt[i])
+            elif self.clr[i] == 'b':
+                self.sco[i] = bluep(self.sp,self.spt[i])
+    def pat4(self) :
+        self.dpt = [0,2,0,2,0,2]
+        self.ds = [0,0,2,2,4,4]
+        self.spt = [1,2,0,1,2,0]
+        self.ss = [1,1,1,3,3,3]
+        self.clr = ['0','r','g','0','b','g']
+        self.lng = len(self.dpt) if len(self.dpt) >= len(self.spt) else len(self.spt)
+        for i in range(len(self.dpt)):
+            self.dmo[i] = green_poison(self.sp,self.dpt[i])
+        for i in range(len(self.spt)):
+            if self.clr[i] == '0' :
+                self.sco[i] = paintb(self.sp,self.spt[i])
+            elif self.clr[i] == 'r':
+                self.sco[i] = redp(self.sp,self.spt[i])
+            elif self.clr[i] == 'g':
+                self.sco[i] = greenp(self.sp,self.spt[i])
+            elif self.clr[i] == 'b':
+                self.sco[i] = bluep(self.sp,self.spt[i])
     def draw(self):
         for tm in range(self.lng):
+            if tm in self.sco.keys():
+                if not self.sco[tm].y >= 900 and self.timer*self.sp >= self.ss[tm]:
+                    self.sco[tm].draw()
+                    self.sco[tm].move()
+                elif self.sco[tm].y >= 900:
+                    del self.sco[tm]
             if tm in self.dmo.keys():
-                if not self.dmo[tm].y >= 570 and self.timer*self.sp >= self.ds[tm]:
-                        self.dmo[tm].draw()
-                        self.dmo[tm].move()
-                elif self.dmo[tm].y >= 570:
+                if not self.dmo[tm].y >= 900 and self.timer*self.sp >= self.ds[tm]:
+                    self.dmo[tm].draw()
+                    self.dmo[tm].move()
+                elif self.dmo[tm].y >= 900:
                     del self.dmo[tm]
             
-            if tm in self.sco.keys():
-                if not self.sco[tm].y >= 570 and self.timer*self.sp >= self.ss[tm]:
-                        self.sco[tm].draw()
-                        self.sco[tm].move()
-                elif self.sco[tm].y >= 570:
-                    del self.sco[tm]
+    def collis_check(self,pla) :
+        global score,get_score,df,stp
+        self.ky = list(self.dmo.keys())
+        for oc in self.ky :
+            if check_collision(self.dmo[oc],pla) :
+                score -= 20*df
+                del self.dmo[oc]
+
+        self.ky2 = list(self.sco.keys())
+        for oc in self.ky2:
+            if check_collision(self.sco[oc],pla) :
+                score += 10
+                get_score += 10
+                if stp == 0 :
+                    self.sco[oc].point()
+                del self.sco[oc]
+
     def remove(self,ty,loc):
         if ty == "sco" :
             del self.sco[loc]
@@ -218,14 +397,16 @@ def check_collision(obj1, player):
 
 # Restart function
 def restart_game():
-    global game_over, timer, coun
-    global pattern_check, btime, tct, realtimer, tc
+    global game_over, timer, coun,timep
+    global pattern_check, btime, tct, realtimer, tc,bctim,stp
 
     game_over = False
     timer = 0
     coun = 1
+    bctim = 0
+    stp = 0
 
-    realtimer = 60
+    realtimer = 60+timep
     btime = realtimer
     tct = realtimer
     pattern_check = 0
@@ -262,6 +443,14 @@ tc = 0
 tct = realtimer
 escore = 0
 get_score_o = 0
+hgsore = 0
+hg_te = 0
+rng = 0
+
+#fps check
+fp = 0
+ftim = realtimer
+fc = 0
 
 # Main game loop
 while running:
@@ -292,23 +481,36 @@ while running:
                 if diff_ez_button.collidepoint(event.pos):
                     # Set game difficulty to easy
                     click_sound.play()
+                    df = 0.5
+                    spdt = 0.75
+                    timep = 30
+                    rng = +0.04
                     restart_game()
                     game_state = 'PLAY'
                 elif diff_normal_button.collidepoint(event.pos):
                     # Set game difficulty to normal
                     click_sound.play()
+                    df = 2
+                    spdt = 1
+                    timep = 0
+                    rng = +0.02
                     restart_game()
                     game_state = 'PLAY'
                 elif diff_hard_button.collidepoint(event.pos):
                     # Set game difficulty to hard
                     click_sound.play()
+                    df = 100
+                    spdt = 1.5
+                    timep = -15
+                    rng = 0.05
                     restart_game()
                     game_state = 'PLAY'
 
             elif event.button == 1 and game_state == 'PLAY' and game_over:
                 if restart_button.collidepoint(event.pos):
                     click_sound.play()
-                    restart_game()
+                    game_state = 'Diff'
+                    game_over = False
 
                 elif menu_button.collidepoint(event.pos):
                     click_sound.play()
@@ -326,7 +528,13 @@ while running:
         #Total color
         fi = open("TotalPaint.txt","r")
         ti_te = ti_font.render("Total color point = "+fi.read(), True, (0, 0, 0))
-        screen.blit(ti_te, (50,100))
+        screen.blit(ti_te, (10,10))
+        fi.close()
+
+        #high color
+        fi = open("highest.txt","r")
+        hg_te = ti_font.render("Highest color = "+fi.read(), True, (0, 0, 0))
+        screen.blit(hg_te, (10,35))
         fi.close()
 
         # Draw the main menu
@@ -343,6 +551,7 @@ while running:
         screen.blit(btn_text, (310, 470))
 
     elif game_state == 'Diff':
+
         # Draw difficulty selection buttons
         pygame.draw.rect(screen, (70, 200, 70), diff_ez_button, border_radius=10)
         pygame.draw.rect(screen, (200, 200, 70), diff_normal_button, border_radius=10)
@@ -359,6 +568,17 @@ while running:
     elif game_state == 'PLAY':
         if not game_over:
             blg.draw()
+            
+            if blu >= 3 and blu>red and blu>gre and blg.bgcc != "b" :
+                cbg.bch()
+            elif red >= 3 and red>blu and red>gre and blg.bgcc != "r" :
+                cbg.bch()
+            elif gre >= 3 and gre>blu and gre>red and blg.bgcc != "g" :
+                cbg.bch()
+            else :
+                stp = 0
+                bcetim = 0
+
             if score <= 0 or realtimer <= 0:
                 get_score_o = get_score
                 fi = open("TotalPaint.txt","r")
@@ -369,6 +589,14 @@ while running:
                 fi.close()
                 get_score = 0
                 escore = score
+                fi = open("highest.txt","r")
+                hgsore = int(fi.read().strip())
+                fi.close()
+                if score >= hgsore :
+                    hgsore = score
+                fi = open("highest.txt","w")
+                fi.write(str(hgsore))
+                fi.close()
                 game_over = True
 
             #Timer
@@ -376,49 +604,66 @@ while running:
             ti_te_rect = ti_te.get_rect(center=(50, 50))
             screen.blit(ti_te, (50,50))
 
+            #color
             ti_te = ti_font.render("Your color = "+str(int(score//1)), True, (0, 0, 0))
             ti_te_rect = ti_te.get_rect(center=(50, 50))
             screen.blit(ti_te, (50,100))
 
+            #FPS
+            #if not ftim-realtimer >= 1:
+            #    fc+=1
+            #else :
+            #    fp = fc
+            #    fc = 0
+            #    ftim = realtimer
+            #ti_te = ti_font.render("FPS:"+str(int(fp)), True, (0, 0, 0))
+            #ti_te_rect = ti_te.get_rect(center=(50, 50))
+            #screen.blit(ti_te, (50,130))
+
             #object pattern
             if pattern_check == 0:
                 pt = pattern(2.4)
-                rane = random.randint(1,2)
+                rane = random.randint(1,4) 
                 if rane == 1 :
                     pt.pat1()
                 elif rane == 2 :
                     pt.pat2()
+                elif rane == 3 :
+                    pt.pat3()
+                elif rane == 4 :
+                    pt.pat4()
                 pattern_check = 1
             elif pattern_check == 1 :
                 pt.draw()
-                if btime-realtimer >= 0.08 :
+                if btime-realtimer >= 0.08+rng :
                     pt.timer += 0.1
                     btime = realtimer
-                if pt.dmo[pt.lng-1].y >= 570:
+                if len(pt.dmo) == 0 and len(pt.sco) == 0 :
                     pattern_check = 0
+                pt.collis_check(player)
 
-            if pt :
-                for oc in pt.dmo.values() :
-                    if check_collision(oc,player) and tc == 0 :
-                        score -= 20
-                        tct = realtimer
-                        tc = 1
-                for oc in pt.sco.values():
-                    if check_collision(oc,player) and tc == 0 :
-                        score += 10
-                        get_score += 10
-                        tct = realtimer
-                        tc = 1
-            if tc == 1 :
-                if tct - realtimer >= 0.5 :
-                    tc = 0
+            #if pt :
+            #    for oc in pt.dmo.values() :
+            #        if check_collision(oc,player) and tc == 0 :
+            #            score -= 20
+            #            tct = realtimer
+            #            tc = 1
+            #    for oc in pt.sco.values():
+            #        if check_collision(oc,player) and tc == 0 :
+            #            score += 10
+            #            get_score += 10
+            #            tct = realtimer
+            #            tc = 1
+            #if tc == 1 :
+            #    if tct - realtimer >= 0.5 :
+            #        tc = 0
 
             timer += 1
 
-            if timer > 3:
+            if timer > 1:
                 timer = 0
-                if coun == 1:
-                    coun = 2
+                if coun < 4:
+                    coun += 1
                 else:
                     coun = 1
             #player
