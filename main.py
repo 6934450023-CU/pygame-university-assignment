@@ -247,6 +247,9 @@ font = pygame.font.Font(None, 80)
 small_font = pygame.font.Font(None, 36)
 restart_button = pygame.Rect(300, 380, 200, 60)
 menu_button = pygame.Rect(300, 460, 200, 60)
+diff_ez_button = pygame.Rect(200, 100, 400, 100)
+diff_normal_button = pygame.Rect(200, 270, 400, 100)
+diff_hard_button = pygame.Rect(200, 440, 400, 100)
 running = True
 game_over = False
 show_hitbox = False
@@ -274,15 +277,35 @@ while running:
             if game_state == 'MENU':
                 if event.key == pygame.K_e:
                     restart_game()
-                    game_state = 'PLAY'
-
-            elif game_state == 'PLAY':
-                if not game_over:
-                    # A and D keys for player movement
-                    player.handle_event(event)
+                    game_state = 'Diff'
+            # A and D keys for player movement
+            if game_state == 'PLAY' and not game_over:
+                player.handle_event(event)
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 and game_state == 'PLAY' and game_over:
+            if event.button == 1 and game_state == 'MENU':
+                if 291 <= event.pos[0] <= 511 and 450 <= event.pos[1] <= 520:
+                    click_sound.play()
+                    game_state = 'Diff'
+
+            elif event.button == 1 and game_state == 'Diff':  ##########difficulty selection
+                if diff_ez_button.collidepoint(event.pos):
+                    # Set game difficulty to easy
+                    click_sound.play()
+                    restart_game()
+                    game_state = 'PLAY'
+                elif diff_normal_button.collidepoint(event.pos):
+                    # Set game difficulty to normal
+                    click_sound.play()
+                    restart_game()
+                    game_state = 'PLAY'
+                elif diff_hard_button.collidepoint(event.pos):
+                    # Set game difficulty to hard
+                    click_sound.play()
+                    restart_game()
+                    game_state = 'PLAY'
+
+            elif event.button == 1 and game_state == 'PLAY' and game_over:
                 if restart_button.collidepoint(event.pos):
                     click_sound.play()
                     restart_game()
@@ -316,8 +339,22 @@ while running:
         button_rect = pygame.Rect(291, 450, 220, 70)
         pygame.draw.rect(screen, (70, 150, 255), button_rect, border_radius=10)
 
-        btn_text = font_button.render("Press E to Start", True, (255, 255, 255))
-        screen.blit(btn_text, (299, 470))
+        btn_text = font_button.render("Press to Start", True, (255, 255, 255))
+        screen.blit(btn_text, (310, 470))
+
+    elif game_state == 'Diff':
+        # Draw difficulty selection buttons
+        pygame.draw.rect(screen, (70, 200, 70), diff_ez_button, border_radius=10)
+        pygame.draw.rect(screen, (200, 200, 70), diff_normal_button, border_radius=10)
+        pygame.draw.rect(screen, (200, 70, 70), diff_hard_button, border_radius=10)
+
+        ez_text = font_button.render("Easy", True, (255, 255, 255))
+        normal_text = font_button.render("Normal", True, (255, 255, 255))
+        hard_text = font_button.render("Hard", True, (255, 255, 255))
+
+        screen.blit(ez_text, (365, 140))
+        screen.blit(normal_text, (350, 310))
+        screen.blit(hard_text, (365, 480))
 
     elif game_state == 'PLAY':
         if not game_over:
