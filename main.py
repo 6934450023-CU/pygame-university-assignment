@@ -6,7 +6,35 @@ pygame.init()
 screen = pygame.display.set_mode((800, 800))
 pygame.display.set_caption("Paint Color to This World")
 
+paint_images = {
+    "sc1.png": pygame.image.load("sc1.png").convert_alpha(),
+    "color/green.png": pygame.image.load("color/green.png").convert_alpha(),
+    "color/red.png": pygame.image.load("color/red.png").convert_alpha(),
+    "color/blue.png": pygame.image.load("color/blue.png").convert_alpha()
+}
+
 clock = pygame.time.Clock()
+
+def load_scaled_image(path, size):
+    image = pygame.image.load(path).convert_alpha()
+    return pygame.transform.scale(image, size)
+
+
+# Player animation: frame 1-4
+run_images = {
+    1: load_scaled_image("run/r4.png", (500, 500)),
+    2: load_scaled_image("run/r3.png", (500, 500)),
+    3: load_scaled_image("run/r2.png", (500, 500)),
+    4: load_scaled_image("run/r1.png", (500, 500))
+}
+
+# Background images
+background_images = {
+    "no": load_scaled_image("rd1.png", (800, 800)),
+    "r": load_scaled_image("red/rd.png", (800, 800)),
+    "g": load_scaled_image("green/gr.png", (800, 800)),
+    "b": load_scaled_image("blue/bl.png", (800, 800))
+}
 
 # Load images once
 poison_image = pygame.image.load("dmg1.png").convert_alpha()
@@ -14,6 +42,7 @@ player_image1 = pygame.image.load("run/r1.png").convert_alpha()
 player_image2 = pygame.image.load("run/r2.png").convert_alpha()
 player_image1 = pygame.image.load("run/r3.png").convert_alpha()
 player_image2 = pygame.image.load("run/r4.png").convert_alpha()
+paint_image = pygame.image.load("sc1.png").convert_alpha()
 
 # Load Sounds Effect
 click_sound = pygame.mixer.Sound("sounds/click.wav")
@@ -74,10 +103,11 @@ class green_poison(obj):
     def __init__(self,speed,obj_start_point):
         super().__init__(speed,obj_start_point)
     def draw(self):
-        x = self.x2
-        image = pygame.image.load('dmg1.png')
-        image = pygame.transform.scale(image,(self.sizex,self.sizey))
-        screen.blit(image,(x,self.y))
+        image = pygame.transform.scale(
+            poison_image,
+            (int(self.sizex), int(self.sizey))
+        )
+        screen.blit(image, (self.x2, self.y))
     def get_rect(self):
         return pygame.Rect(
             int(self.x2 + self.sizex * 0.24),
@@ -92,10 +122,11 @@ class paintb(obj):
         super().__init__(speed,obj_start_point)
         self.im = 'sc1.png'
     def draw(self):
-        x = self.x2
-        image = pygame.image.load(self.im)
-        image = pygame.transform.scale(image,(self.sizex,self.sizey))
-        screen.blit(image,(x,self.y))
+        image = pygame.transform.scale(
+            paint_images[self.im],
+            (int(self.sizex), int(self.sizey))
+        )
+        screen.blit(image, (self.x2, self.y))
     def get_rect(self):
         return pygame.Rect(
             int(self.x2 + self.sizex * 0.24),
@@ -232,18 +263,9 @@ class Player:
             elif event.key == pygame.K_d:
                 self.move_right()
 
-    def draw(self,ct):
+    def draw(self, ct):
         x = self.lane_x[self.lane]
-        if ct == 1 :
-            image = pygame.image.load('run/r4.png')
-        elif ct == 2 :
-            image = pygame.image.load('run/r3.png')
-        elif ct == 3 :
-            image = pygame.image.load('run/r2.png')
-        elif ct == 4 :
-            image = pygame.image.load('run/r1.png')
-        image = pygame.transform.scale(image,(self.sizex,self.sizey))
-        screen.blit(image,(x,self.y))
+        screen.blit(run_images[ct], (x, self.y))
 
     def get_rect(self):
         x = self.lane_x[self.lane]
@@ -397,23 +419,39 @@ def check_collision(obj1, player):
 
 # Restart function
 def restart_game():
-    global game_over, timer, coun,timep
-    global pattern_check, btime, tct, realtimer, tc,bctim,stp
+    global game_over, timer, coun, timep
+    global pattern_check, btime, tct, realtimer, tc
+    global bcetim, stp
+    global red, gre, blu, score, get_score
 
     game_over = False
     timer = 0
     coun = 1
-    bctim = 0
+
+    # Reset score
+    score = 100
+    get_score = 0
+
+    # Reset collected colors
+    red = 0
+    gre = 0
+    blu = 0
+
+    # Reset background and animation
+    blg.change('no')
+    bcetim = 0
     stp = 0
 
-    realtimer = 60+timep
+    # Reset timer
+    realtimer = 60 + timep
     btime = realtimer
     tct = realtimer
+
     pattern_check = 0
     tc = 0
 
+    # Reset player
     player.lane = 1
-
 
 #timer
 pytime = pygame.event.custom_type()
@@ -770,6 +808,11 @@ while running:
             screen.blit(menu_text, menu_text_rect)
     
     clock.tick(30)
+
+    pygame.display.set_caption(
+        f"Goo Mai Ru | FPS: {clock.get_fps():.1f}"
+    )
+
     pygame.display.flip()
 
 pygame.quit()
